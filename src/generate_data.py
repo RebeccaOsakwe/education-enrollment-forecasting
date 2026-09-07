@@ -235,7 +235,32 @@ def generate_cycle(year, rng):
             }
         )
 
-    return pd.DataFrame(records)
+    cycle_df = pd.DataFrame(records)
+
+    cumulative_columns = [
+        "applications_cumulative",
+        "admits_cumulative",
+        "deposits_cumulative",
+        "aid_offers_cumulative",
+    ]
+
+    for column in cumulative_columns:
+        cycle_df[column] = cycle_df[column].cummax()
+
+    # Recalculate the deposit rate after enforcing
+    # monotonic cumulative counts.
+    cycle_df["deposit_rate_to_date"] = (
+        cycle_df["deposits_cumulative"]
+        / cycle_df["admits_cumulative"].replace(0, np.nan)
+    ).fillna(0)
+
+    cycle_df["deposit_rate_to_date"] = (
+        cycle_df["deposit_rate_to_date"]
+        .clip(0, 1)
+        .round(4)
+    )
+
+    return cycle_df
 
 
 def add_year_over_year_features(df):
