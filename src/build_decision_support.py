@@ -180,19 +180,21 @@ def build_decision_summary(forecasts):
             - target
         )
 
+        # These thresholds are demonstration decision rules,
+        # not statistically estimated uncertainty intervals.
         if disagreement >= 60:
             decision_status = (
-                "High uncertainty / downside risk"
+                "High model disagreement / downside exposure"
             )
 
         elif disagreement >= 35:
             decision_status = (
-                "Elevated uncertainty"
+                "Elevated model disagreement"
             )
 
         elif forecast_low < target - 25:
             decision_status = (
-                "Downside risk"
+                "Downside exposure"
             )
 
         else:
@@ -278,27 +280,37 @@ def build_executive_message(row):
         row["model_disagreement"]
     )
 
+    forecast_low = float(
+        row["forecast_low"]
+    )
+
+    forecast_high = float(
+        row["forecast_high"]
+    )
+
     status = row[
         "decision_status"
     ]
 
     message = (
         f"{horizon} weeks before census, the institutional "
-        f"target is {target} students. The multivariable Ridge "
-        f"forecast is {ridge:.0f}, while the deposit-based "
-        f"operational forecast is {deposit:.0f}. "
-        f"The forecasts differ by {disagreement:.0f} students. "
+        f"target is {target} students. Forecasts range from "
+        f"{forecast_low:.0f} to {forecast_high:.0f}. "
+        f"The multivariable Ridge forecast is {ridge:.0f}, "
+        f"while the deposit-based operational forecast is "
+        f"{deposit:.0f}. The models differ by "
+        f"{disagreement:.0f} students. "
         f"Decision status: {status}. "
-        f"Leadership should treat the point forecast cautiously "
-        f"and investigate conversion behavior before making "
-        f"enrollment-dependent budget or staffing commitments."
+        f"Leadership should avoid relying on a single point "
+        f"forecast and investigate conversion behavior before "
+        f"making enrollment-dependent budget or staffing commitments."
     )
 
     return message
 
 
 def add_executive_messages(summary):
-    """Attach an executive message to each horizon."""
+    """Attach an executive message to each forecast horizon."""
 
     result = summary.copy()
 
@@ -314,10 +326,13 @@ def add_executive_messages(summary):
 # Charts
 # ---------------------------------------------------------------------
 
-def plot_forecast_comparison(summary):
+def plot_forecast_comparison(summary, actual):
     """
     Compare forecasting methods with the institutional target
     at each forecast horizon.
+
+    The retrospective final outcome is shown separately because
+    it would not have been known at forecast time.
     """
 
     FIGURE_DIR.mkdir(
@@ -330,8 +345,8 @@ def plot_forecast_comparison(summary):
         ascending=False,
     )
 
-    x = range(
-        len(plot_df)
+    x = list(
+        range(len(plot_df))
     )
 
     fig, ax = plt.subplots(
@@ -378,8 +393,15 @@ def plot_forecast_comparison(summary):
         label="Institutional target",
     )
 
+    ax.axhline(
+        actual["final_enrollment"],
+        linestyle=":",
+        linewidth=2,
+        label="Retrospective final outcome",
+    )
+
     ax.set_xticks(
-        list(x)
+        x
     )
 
     ax.set_xticklabels(
@@ -398,7 +420,7 @@ def plot_forecast_comparison(summary):
     )
 
     ax.set_ylabel(
-        "Predicted final enrollment"
+        "Forecast final enrollment"
     )
 
     ax.legend()
@@ -428,10 +450,13 @@ def plot_forecast_comparison(summary):
     )
 
 
-def plot_model_disagreement(summary):
+def plot_forecast_range(summary, actual):
     """
-    Show the spread between the highest and lowest forecasts
+    Show the range between the lowest and highest forecasts
     at each forecast horizon.
+
+    This is a model-spread visualization, not a statistical
+    confidence or prediction interval.
     """
 
     plot_df = summary.sort_values(
@@ -439,26 +464,81 @@ def plot_model_disagreement(summary):
         ascending=False,
     )
 
-    fig, ax = plt.subplots(
-        figsize=(9, 5)
+    x = list(
+        range(len(plot_df))
     )
 
-    ax.bar(
-        plot_df["weeks_to_census"].astype(str),
-        plot_df["model_disagreement"],
+    fig, ax = plt.subplots(
+        figsize=(10, 6)
+    )
+
+    for position, (_, row) in zip(
+        x,
+        plot_df.iterrows(),
+    ):
+
+        low = row["forecast_low"]
+        high = row["forecast_high"]
+
+        ax.vlines(
+            position,
+            low,
+            high,
+            linewidth=5,
+        )
+
+        ax.scatter(
+            position,
+            low,
+            s=70,
+        )
+
+        ax.scatter(
+            position,
+            high,
+            s=70,
+        )
+
+    ax.axhline(
+        plot_df[
+            "institutional_target"
+        ].iloc[0],
+        linestyle="--",
+        linewidth=2,
+        label="Institutional target",
+    )
+
+    ax.axhline(
+        actual["final_enrollment"],
+        linestyle=":",
+        linewidth=2,
+        label="Retrospective final outcome",
+    )
+
+    ax.set_xticks(
+        x
+    )
+
+    ax.set_xticklabels(
+        [
+            f"{int(value)} weeks"
+            for value in plot_df["weeks_to_census"]
+        ]
     )
 
     ax.set_title(
-        "Forecast Disagreement as an Uncertainty Signal"
+        "2026 Forecast Range vs. Enrollment Target"
     )
 
     ax.set_xlabel(
-        "Weeks before census"
+        "Forecast horizon before census"
     )
 
     ax.set_ylabel(
-        "Difference between highest and lowest forecasts"
+        "Forecast final enrollment"
     )
+
+    ax.legend()
 
     ax.grid(
         axis="y",
@@ -469,7 +549,7 @@ def plot_model_disagreement(summary):
 
     output_path = (
         FIGURE_DIR
-        / "model_disagreement_2026.png"
+        / "forecast_range_2026.png"
     )
 
     fig.savefig(
@@ -563,6 +643,16 @@ def print_summary(summary, actual):
         "evaluation and would not have been available at forecast time."
     )
 
+    print(
+        "\nMethodological note:"
+    )
+
+    print(
+        "The forecast range reflects disagreement across modeling "
+        "approaches. It is not a statistical confidence interval "
+        "or prediction interval."
+    )
+
 
 # ---------------------------------------------------------------------
 # Main
@@ -592,11 +682,13 @@ def main():
     )
 
     plot_forecast_comparison(
-        summary
+        summary,
+        actual,
     )
 
-    plot_model_disagreement(
-        summary
+    plot_forecast_range(
+        summary,
+        actual,
     )
 
     save_summary(
