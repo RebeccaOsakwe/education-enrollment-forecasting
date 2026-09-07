@@ -452,11 +452,11 @@ def plot_forecast_comparison(summary, actual):
 
 def plot_forecast_range(summary, actual):
     """
-    Show the range between the lowest and highest forecasts
+    Show the spread between the lowest and highest forecasts
     at each forecast horizon.
 
-    This is a model-spread visualization, not a statistical
-    confidence or prediction interval.
+    The displayed range represents disagreement across forecasting
+    approaches. It is not a statistical prediction interval.
     """
 
     plot_df = summary.sort_values(
@@ -464,9 +464,7 @@ def plot_forecast_range(summary, actual):
         ascending=False,
     )
 
-    x = list(
-        range(len(plot_df))
-    )
+    x = list(range(len(plot_df)))
 
     fig, ax = plt.subplots(
         figsize=(10, 6)
@@ -480,6 +478,7 @@ def plot_forecast_range(summary, actual):
         low = row["forecast_low"]
         high = row["forecast_high"]
 
+        # Forecast range
         ax.vlines(
             position,
             low,
@@ -487,37 +486,58 @@ def plot_forecast_range(summary, actual):
             linewidth=5,
         )
 
-        ax.scatter(
+        # Neutral endpoints
+        ax.plot(
             position,
             low,
-            s=70,
+            marker="o",
+            markersize=8,
         )
 
-        ax.scatter(
+        ax.plot(
             position,
             high,
-            s=70,
+            marker="o",
+            markersize=8,
         )
 
+        # Value labels
+        ax.text(
+            position,
+            low - 2,
+            f"{low:.0f}",
+            ha="center",
+            va="top",
+            fontsize=10,
+        )
+
+        ax.text(
+            position,
+            high + 2,
+            f"{high:.0f}",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+        )
+
+    target = actual["enrollment_target"]
+    final = actual["final_enrollment"]
+
     ax.axhline(
-        plot_df[
-            "institutional_target"
-        ].iloc[0],
+        target,
         linestyle="--",
         linewidth=2,
-        label="Institutional target",
+        label=f"Institutional target ({target})",
     )
 
     ax.axhline(
-        actual["final_enrollment"],
+        final,
         linestyle=":",
         linewidth=2,
-        label="Retrospective final outcome",
+        label=f"Retrospective final outcome ({final})",
     )
 
-    ax.set_xticks(
-        x
-    )
+    ax.set_xticks(x)
 
     ax.set_xticklabels(
         [
@@ -527,7 +547,9 @@ def plot_forecast_range(summary, actual):
     )
 
     ax.set_title(
-        "2026 Forecast Range vs. Enrollment Target"
+        "2026 Enrollment Forecast Range vs. Target",
+        fontsize=15,
+        pad=16,
     )
 
     ax.set_xlabel(
@@ -538,14 +560,28 @@ def plot_forecast_range(summary, actual):
         "Forecast final enrollment"
     )
 
-    ax.legend()
+    ax.legend(
+        loc="upper left"
+    )
 
     ax.grid(
         axis="y",
         alpha=0.25,
     )
 
-    fig.tight_layout()
+    # Methodological qualification
+    fig.text(
+        0.5,
+        0.01,
+        "Range represents spread across forecasting approaches, "
+        "not a statistical prediction interval.",
+        ha="center",
+        fontsize=9,
+    )
+
+    fig.tight_layout(
+        rect=[0, 0.04, 1, 1]
+    )
 
     output_path = (
         FIGURE_DIR
@@ -555,11 +591,10 @@ def plot_forecast_range(summary, actual):
     fig.savefig(
         output_path,
         dpi=160,
+        bbox_inches="tight",
     )
 
-    plt.close(
-        fig
-    )
+    plt.close(fig)
 
     print(
         f"Saved {output_path}"
