@@ -1,0 +1,13 @@
+method,predicted_enrollment,institutional_target,forecast_gap_to_target,weeks_to_census
+prior_year_baseline,820.0,840,-20.0,12
+deposit_conversion,756.8,840,-83.2,12
+ridge_regression,824.5,840,-15.5,12
+operational_ridge,789.0,840,-51.0,12
+prior_year_baseline,820.0,840,-20.0,8
+deposit_conversion,758.9,840,-81.1,8
+ridge_regression,816.7,840,-23.3,8
+operational_ridge,782.7,840,-57.3,8
+prior_year_baseline,820.0,840,-20.0,4
+deposit_conversion,767.2,840,-72.8,4
+ridge_regression,836.9,840,-3.1,4
+operational_ridge,808.7,840,-31.3,4

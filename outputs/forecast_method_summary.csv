@@ -1,0 +1,13 @@
+method,mae,median_absolute_error,n_forecasts,weeks_to_census
+ridge_regression,32.0,33.2,4,12
+prior_year_baseline,33.5,29.5,4,12
+deposit_conversion,48.2,36.0,4,12
+operational_ridge,53.8,59.4,4,12
+ridge_regression,21.8,15.9,4,8
+deposit_conversion,26.9,20.4,4,8
+prior_year_baseline,33.5,29.5,4,8
+operational_ridge,51.6,51.1,4,8
+ridge_regression,19.1,19.0,4,4
+prior_year_baseline,33.5,29.5,4,4
+deposit_conversion,38.1,32.5,4,4
+operational_ridge,54.8,55.0,4,4
