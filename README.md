@@ -292,6 +292,7 @@ The appropriate response is not to assume that the simpler model will always be 
 It is to recognize that **model disagreement itself can be decision-relevant information that should be surfaced rather than hidden.**
 
 The repository includes the synthetic data-generation process, validation checks, forecasting workflow, walk-forward evaluation, diagnostic analysis, and decision-support outputs used to produce this demonstration.
+
 ---
 
 ## Project Structure
