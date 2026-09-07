@@ -18,8 +18,7 @@ OUTPUT_DIR = PROJECT_ROOT / "outputs"
 
 FORECAST_HORIZONS = [12, 8, 4]
 
-# Keep the model deliberately small because the number of historical
-# enrollment cycles is limited.
+# Full multivariable model.
 MODEL_FEATURES = [
     "enrollment_target",
     "applications_cumulative",
@@ -28,6 +27,14 @@ MODEL_FEATURES = [
     "aid_offers_cumulative",
     "deposit_rate_to_date",
     "applications_yoy_change",
+    "deposits_yoy_change",
+]
+
+# Narrower operational model focused on deposit-related signals.
+OPERATIONAL_FEATURES = [
+    "enrollment_target",
+    "deposits_cumulative",
+    "deposit_rate_to_date",
     "deposits_yoy_change",
 ]
 
@@ -147,10 +154,11 @@ def prepare_model_data(df):
     return model_df
 
 
-def ridge_forecast(train, test_row):
+def ridge_forecast(train, test_row, features):
     """
     Fit Ridge regression on historical cycles and predict
-    final enrollment for one unseen cycle.
+    final enrollment for one unseen cycle using the supplied
+    feature set.
     """
 
     train = prepare_model_data(train)
@@ -159,10 +167,10 @@ def ridge_forecast(train, test_row):
         pd.DataFrame([test_row])
     )
 
-    X_train = train[MODEL_FEATURES]
+    X_train = train[features]
     y_train = train["final_enrollment"]
 
-    X_test = test_df[MODEL_FEATURES]
+    X_test = test_df[features]
 
     model = build_ridge_model()
 
@@ -226,6 +234,12 @@ def walk_forward_validation(snapshot):
             "ridge_regression": ridge_forecast(
                 train,
                 test_row,
+                MODEL_FEATURES,
+            ),
+            "operational_ridge": ridge_forecast(
+                train,
+                test_row,
+                OPERATIONAL_FEATURES,
             ),
         }
 
@@ -321,6 +335,12 @@ def forecast_2026(snapshot):
         "ridge_regression": ridge_forecast(
             train,
             test_row,
+            MODEL_FEATURES,
+        ),
+        "operational_ridge": ridge_forecast(
+            train,
+            test_row,
+            OPERATIONAL_FEATURES,
         ),
     }
 
