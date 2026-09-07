@@ -291,6 +291,7 @@ The appropriate response is not to assume that the simpler model will always be 
 
 It is to recognize that **model disagreement itself can be decision-relevant information that should be surfaced rather than hidden.**
 
+The repository includes the synthetic data-generation process, validation checks, forecasting workflow, walk-forward evaluation, diagnostic analysis, and decision-support outputs used to produce this demonstration.
 ---
 
 ## Project Structure
@@ -399,6 +400,6 @@ A production implementation would require substantially more historical data, in
 
 ## About
 
-This project was developed by **Rebecca Osakwe** as a portfolio demonstration of forecasting, analytical validation, and executive decision support in an education context.
+This project was developed by **Rebecca Osakwe**, an economist and analytics leader with experience building decision-support systems across higher education, government, and applied analytics environments.
 
 My work focuses on translating data, statistical analysis, and AI-enabled analytical methods into decision-relevant insight for organizations facing complex operational and strategic questions.
