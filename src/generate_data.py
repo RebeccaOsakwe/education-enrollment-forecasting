@@ -74,8 +74,9 @@ def generate_year_parameters(year, rng):
 
     elif year == 2021:
         # Partial recovery following the disruption.
-        application_base *= 1.04
-        deposit_rate *= 0.98
+        application_base *= 1.08
+        deposit_rate *= 1.03
+        deposit_to_enroll_rate *= 1.01
 
     elif year in (2024, 2025):
         # Stronger application volume but weaker conversion.
